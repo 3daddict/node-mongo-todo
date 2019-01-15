@@ -10,6 +10,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+//get the database entries
 app.get('/getTodos', (req, res) => {
     db.getDB().collection(collection).find({}).toArray((err, documents) => {
         if (err) {
@@ -20,6 +21,34 @@ app.get('/getTodos', (req, res) => {
         }
     });
 });
+
+//create a database item
+app.post('/', (req, res) => {
+    const userInput = req.body;
+    db.getDB().collection(collection).insertOne(userInput, (err, result) => {
+        if (err) {
+            console.log(err);
+
+        } else {
+            res.json({result: result, document: result.ops[0]});
+        }
+    })
+});
+
+//update a database item by id
+app.put('/:id', (req, res) => {
+    const todoID = req.params.id;
+    const userInput = req.body;
+
+    db.getDB().collection(collection).findOneAndUpdate(
+        { _id: db.getPrimaryKey(todoID) }, { $set: { todo: userInput.todo } }, { returnOriginal: false }, (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.json(result)
+            }
+        });
+})
 
 
 db.connect((err) => {
